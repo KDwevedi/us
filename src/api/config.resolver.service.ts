@@ -23,6 +23,7 @@ export class ConfigResolverService {
     getHost(applicationId: string): string {
         applicationId = this.transform(applicationId);
         const config = this.configService.get<string>(applicationId);
+        console.log("HOST",config)
         return JSON.parse(config).host;
     }
 
@@ -39,11 +40,11 @@ export class ConfigResolverService {
     }
 
     getEncryptionKey(applicationId: string): string{
-        if (this.getEncryptionStatus(applicationId)) {
+        // if (this.getEncryptionStatus(applicationId)) {
             applicationId = this.transform(applicationId);
             const config = this.configService.get<string>(applicationId);
             return JSON.parse(config).encryption.key || undefined;
-        }
+        // }
         return undefined;
     }
 

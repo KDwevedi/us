@@ -26,6 +26,7 @@ import { SMSResponse } from './sms/sms.interface';
 import { RefreshRequest } from '@fusionauth/typescript-client/build/src/FusionAuthClient';
 import { ChangePasswordDTO } from './dto/changePassword.dto';
 import { SentryInterceptor } from '../interceptors/sentry.interceptor';
+import { AddTimestampInterceptor } from './interceptors/encrypted-timestamp.interceptor';
 import * as Sentry from '@sentry/node';
 import { LoginDto } from './dto/login.dto';
 import { SendOtpDto } from './dto/send-otp.dto';
@@ -91,6 +92,47 @@ export class ApiController {
   async verifyOTP(@Query() params: VerifyOtpDto): Promise<any> {
     const status: SMSResponse = await this.otpService.verifyOTP(params);
     return { status };
+  }
+
+  @Post('secure-login-samiksha')
+  @UseInterceptors(AddTimestampInterceptor)
+  @UsePipes(new ValidationPipe({ transform: true }))
+  async secureLogin(
+    @Body() user: LoginDto,
+    @Headers('authorization') authHeader,
+  ): Promise<any> {
+    // ONLY for Samiksha Audit App
+    const encodedBase64Key = this.configResolverService.getEncryptionKey(
+      user.applicationId,
+    );
+
+    console.log(encodedBase64Key)
+    const parsedBase64Key =
+      encodedBase64Key === undefined
+        ? CryptoJS.enc.Base64.parse('bla')
+        : CryptoJS.enc.Base64.parse(encodedBase64Key);
+    console.log("KEY",JSON.stringify(parsedBase64Key))
+
+    let loginId = '';
+    try {
+      loginId = this.apiService.decrypt(user.loginId, parsedBase64Key);
+      console.log("LOGIN", loginId)
+    } catch (e) {
+      console.log(`Problem in decrypting loginId: ${user.loginId}`);
+    }
+
+    let password = '';
+    try {
+      password = this.apiService.decrypt(user.password, parsedBase64Key);
+      console.log("PASS", password)
+    } catch (e) {
+      console.log(`Problem in decrypting password: ${user.password}`);
+    }
+
+    // if we are not able to decrypt, we'll try to authenticate with the original creds
+    user.loginId = loginId ? loginId : user.loginId;
+    user.password = password ? password : user.password;
+    return await this.apiService.login(user, authHeader);
   }
 
   @Post('login')
