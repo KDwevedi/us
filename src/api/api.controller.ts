@@ -32,6 +32,7 @@ import { LoginDto } from './dto/login.dto';
 import { SendOtpDto } from './dto/send-otp.dto';
 import { VerifyOtpDto } from './dto/verify-otp.dto';
 import { Throttle, SkipThrottle} from '@nestjs/throttler';
+import { RateLimit } from 'nestjs-rate-limiter';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const CryptoJS = require('crypto-js');
 
@@ -94,6 +95,7 @@ export class ApiController {
     return { status };
   }
   
+  @RateLimit({keyPrefix: 'secure-login', points: 5, duration: 60, errorMessage:'Only five login attempts are allowed in a minute. Please wait.'})
   @Post('secure-login-samiksha')
   @UseInterceptors(AddTimestampInterceptor)
   @UsePipes(new ValidationPipe({ transform: true }))
