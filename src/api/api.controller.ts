@@ -93,7 +93,7 @@ export class ApiController {
     const status: SMSResponse = await this.otpService.verifyOTP(params);
     return { status };
   }
-
+  
   @Post('secure-login-samiksha')
   @UseInterceptors(AddTimestampInterceptor)
   @UsePipes(new ValidationPipe({ transform: true }))
@@ -105,6 +105,8 @@ export class ApiController {
     const encodedBase64Key = this.configResolverService.getEncryptionKey(
       user.applicationId,
     );
+
+    console.log("USER",user)
 
     console.log(encodedBase64Key)
     const parsedBase64Key =
