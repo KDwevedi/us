@@ -11,6 +11,7 @@ import { GupshupService } from './sms/gupshup/gupshup.service';
 import { SmsService } from './sms/sms.service';
 import got from 'got/dist/source';
 import { CdacService } from './sms/cdac/cdac.service';
+import { RateLimiterModule } from 'nestjs-rate-limiter';
 
 const otpServiceFactory = {
   provide: OtpService,
@@ -44,7 +45,9 @@ const otpServiceFactory = {
 };
 
 @Module({
-  imports: [HttpModule, ConfigModule],
+  imports: [RateLimiterModule.register({
+    type: 'Memory'
+  }),HttpModule, ConfigModule],
   controllers: [ApiController],
   providers: [
     ApiService,
