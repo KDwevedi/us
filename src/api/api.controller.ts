@@ -32,8 +32,11 @@ import { LoginDto } from './dto/login.dto';
 import { SendOtpDto } from './dto/send-otp.dto';
 import { VerifyOtpDto } from './dto/verify-otp.dto';
 import { Throttle, SkipThrottle} from '@nestjs/throttler';
+import { encode } from 'punycode';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const CryptoJS = require('crypto-js');
+import { encrypt, decrypt, pack, unpack } from './encryption';
+
 
 CryptoJS.lib.WordArray.words;
 
@@ -94,7 +97,7 @@ export class ApiController {
     return { status };
   }
   
-  @Throttle(5,60)
+  // @Throttle(5,60)
   @Post('secure-login-samiksha')
   @UseInterceptors(AddTimestampInterceptor)
   @UsePipes(new ValidationPipe({ transform: true }))
@@ -103,30 +106,43 @@ export class ApiController {
     @Headers('authorization') authHeader,
   ): Promise<any> {
     // ONLY for Samiksha Audit App
-    const encodedBase64Key = this.configResolverService.getEncryptionKey(
+
+    // console.log("Auth", authHeader)
+    const base64Key = this.configResolverService.getGCMEncryptionKey(
       user.applicationId,
     );
 
     console.log("USER",user)
+    console.log("KEY", base64Key)
 
-    console.log(encodedBase64Key)
-    const parsedBase64Key =
-      encodedBase64Key === undefined
-        ? CryptoJS.enc.Base64.parse('bla')
-        : CryptoJS.enc.Base64.parse(encodedBase64Key);
-    console.log("KEY",JSON.stringify(parsedBase64Key))
+    // console.log(encodedBase64Key)
+    // const parsedBase64Key =
+    //   encodedBase64Key === undefined
+    //     ? CryptoJS.enc.Base64.parse('bla')
+    //     : CryptoJS.enc.Base64.parse(encodedBase64Key);
+    // console.log("KEY",JSON.stringify(parsedBase64Key))
 
     let loginId = '';
     try {
-      loginId = this.apiService.decrypt(user.loginId, parsedBase64Key);
+      // loginId = gcmAes.aes_gcm_decrypt(user.loginId, encodedBase64Key);
+      const [cipherText, packedIv, authTag] = user.loginId.split(':')
+      // console.log("iv", packedIv, "cipher", cipherText)
+      const cipher = Buffer.from(unpack(cipherText));
+      const tag = Buffer.from(unpack(authTag))
+      loginId = await decrypt(cipher, base64Key, new Uint8Array(unpack(packedIv)), tag)
       console.log("LOGIN", loginId)
     } catch (e) {
-      console.log(`Problem in decrypting loginId: ${user.loginId}`);
+      console.log(`Problem in decrypting loginId: ${user.loginId}`, e);
     }
 
     let password = '';
     try {
-      password = this.apiService.decrypt(user.password, parsedBase64Key);
+      const [cipherText, packedIv, authTag] = user.password.split(':')
+      // password = this.apiService.decrypt(user.password, parsedBase64Key);
+      const cipher = Buffer.from(unpack(cipherText));
+      const tag = Buffer.from(unpack(authTag))
+      password = await decrypt(cipher, base64Key, new Uint8Array(unpack(packedIv)), tag)
+      // password = await decrypt(cipher, base64Key, new Uint8Array(unpack(packedIv)))
       console.log("PASS", password)
     } catch (e) {
       console.log(`Problem in decrypting password: ${user.password}`);
@@ -135,7 +151,10 @@ export class ApiController {
     // if we are not able to decrypt, we'll try to authenticate with the original creds
     user.loginId = loginId ? loginId : user.loginId;
     user.password = password ? password : user.password;
-    return await this.apiService.login(user, authHeader);
+
+    console.log("USER",user) 
+    // return await this.apiService.login(user, authHeader);
+    return user
   }
 
   @Post('login')

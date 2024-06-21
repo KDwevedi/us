@@ -47,6 +47,14 @@ export class ConfigResolverService {
         // }
         return undefined;
     }
+    getGCMEncryptionKey(applicationId: string): string{
+        // if (this.getEncryptionStatus(applicationId)) {
+            applicationId = this.transform(applicationId);
+            const config = this.configService.get<string>(applicationId);
+            return JSON.parse(config).encryption.gcmKey || undefined;
+        // }
+        return undefined;
+    }
 
     getHasura(applicationId: string): {
         graphql_url: string,

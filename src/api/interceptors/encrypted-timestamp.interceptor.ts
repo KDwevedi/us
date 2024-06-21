@@ -4,24 +4,26 @@ import { map } from 'rxjs/operators';
 import { ApiService } from '../api.service';
 import { ConfigService } from '@nestjs/config';
 import { Response } from 'express';
+import { encrypt, decrypt, pack, unpack } from '../encryption';
 
 
 @Injectable()
 export class AddTimestampInterceptor implements NestInterceptor {
   constructor(private apiService: ApiService, private configService: ConfigService) {}
 
-  intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
-    const aesKey = JSON.parse(this.configService.get<string>("AUDIT_PARSED_SECRET_KEY"));
+  async intercept(context: ExecutionContext, next: CallHandler): Promise<Observable<any>> {
+    const aesKey = this.configService.get<string>("AES_GCM_KEY")
     const now = new Date();
-    const encryptedTimeStamp = this.apiService.encrypt(now.toISOString(), aesKey);
+    const {cipher, iv, authTag} = await encrypt(now.toISOString(), aesKey);
 
+    const encryptedTimeStamp = `${pack(iv)}:${pack(cipher)}:${pack(authTag)}`
     return next.handle().pipe(
       map(data => {
         const response: Response = context.switchToHttp().getResponse();
         // Checking if the response from the API is a success
-        if (data && data.responseCode === 'OK') {
+        // if (data && data.responseCode === 'OK') {
           response.setHeader('X-Timestamp', encryptedTimeStamp);
-        }
+        // }
         return data;
       })
     );
