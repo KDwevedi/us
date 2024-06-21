@@ -33,6 +33,7 @@ import { SendOtpDto } from './dto/send-otp.dto';
 import { VerifyOtpDto } from './dto/verify-otp.dto';
 import { Throttle, SkipThrottle} from '@nestjs/throttler';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
+import { encrypt, decrypt, pack, unpack } from './encryption.service';
 const CryptoJS = require('crypto-js');
 
 CryptoJS.lib.WordArray.words;
@@ -102,28 +103,35 @@ export class ApiController {
     @Headers('authorization') authHeader,
   ): Promise<any> {
     // ONLY for Samiksha Audit App
-    const encodedBase64Key = this.configResolverService.getEncryptionKey(
+    let encodedBase64Key = this.configResolverService.getGCMEncryptionKey(
       user.applicationId,
     );
-
-    console.log(encodedBase64Key)
-    const parsedBase64Key =
-      encodedBase64Key === undefined
-        ? CryptoJS.enc.Base64.parse('bla')
-        : CryptoJS.enc.Base64.parse(encodedBase64Key);
-    console.log("KEY",JSON.stringify(parsedBase64Key))
+    // if(!encodedBase64Key){
+    //   encodedBase64Key = this.configResolverService.getEncryptionKey(user.applicationId);
+    // }
+    console.log("KEY",encodedBase64Key)
+    // const parsedBase64Key =
+    //   encodedBase64Key === undefined
+    //     ? CryptoJS.enc.Base64.parse('bla')
+    //     : CryptoJS.enc.Base64.parse(encodedBase64Key);
+    // console.log("KEY",JSON.stringify(parsedBase64Key))
 
     let loginId = '';
     try {
-      loginId = this.apiService.decrypt(user.loginId, parsedBase64Key);
+      // loginId = this.apiService.decrypt(user.loginId, parsedBase64Key);
+      const [packedIv, cipherText] = user.loginId.split(':')
+      console.log("iv", packedIv, "cipher", cipherText)
+      loginId = await decrypt(unpack(cipherText), encodedBase64Key, new Uint8Array(unpack(packedIv)))
       console.log("LOGIN", loginId)
     } catch (e) {
-      console.log(`Problem in decrypting loginId: ${user.loginId}`);
+      console.log(`Problem in decrypting loginId: ${user.loginId}`,e);
     }
 
     let password = '';
     try {
-      password = this.apiService.decrypt(user.password, parsedBase64Key);
+      const [packedIv, cipherText] = user.password.split(':')
+      // password = this.apiService.decrypt(user.password, parsedBase64Key);
+      password = await decrypt(unpack(cipherText), encodedBase64Key, new Uint8Array(unpack(packedIv)))
       console.log("PASS", password)
     } catch (e) {
       console.log(`Problem in decrypting password: ${user.password}`);
