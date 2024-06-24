@@ -5,7 +5,7 @@ import {
 export class LoginDto {
   @IsString()
   @IsNotEmpty()
-  @MaxLength(80)
+  // @MaxLength(80)
   loginId: string;
 
   @IsString()

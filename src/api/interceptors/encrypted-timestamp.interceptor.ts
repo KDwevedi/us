@@ -14,9 +14,9 @@ export class AddTimestampInterceptor implements NestInterceptor {
   async intercept(context: ExecutionContext, next: CallHandler): Promise<Observable<any>> {
     const aesKey = this.configService.get<string>("AES_GCM_KEY")
     const now = new Date();
-    const {cipher, iv, authTag} = await encrypt(now.toISOString(), aesKey);
+    const {cipher, iv, authTag, aad} = await encrypt(now.toISOString(), aesKey);
 
-    const encryptedTimeStamp = `${pack(cipher)}:${pack(iv)}:${pack(authTag)}`
+    const encryptedTimeStamp = `${pack(cipher)}:${pack(iv)}:${pack(authTag)}:${pack(aad)}`
     return next.handle().pipe(
       map(data => {
         const response: Response = context.switchToHttp().getResponse();

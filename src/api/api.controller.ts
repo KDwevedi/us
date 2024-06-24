@@ -125,11 +125,12 @@ export class ApiController {
     let loginId = '';
     try {
       // loginId = gcmAes.aes_gcm_decrypt(user.loginId, encodedBase64Key);
-      const [cipherText, packedIv, authTag] = user.loginId.split(':')
+      const [cipherText, packedIv, authTag, packedAad] = user.loginId.split(':')
       // console.log("iv", packedIv, "cipher", cipherText)
       const cipher = Buffer.from(unpack(cipherText));
       const tag = Buffer.from(unpack(authTag))
-      loginId = await decrypt(cipher, base64Key, new Uint8Array(unpack(packedIv)), tag)
+      const aad = Buffer.from(unpack(packedAad))
+      loginId = await decrypt(cipher, base64Key, new Uint8Array(unpack(packedIv)), tag, aad)
       console.log("LOGIN", loginId)
     } catch (e) {
       console.log(`Problem in decrypting loginId: ${user.loginId}`, e);
@@ -137,15 +138,17 @@ export class ApiController {
 
     let password = '';
     try {
-      const [cipherText, packedIv, authTag] = user.password.split(':')
+      const [cipherText, packedIv, authTag, packedAad] = user.password.split(':')
       // password = this.apiService.decrypt(user.password, parsedBase64Key);
       const cipher = Buffer.from(unpack(cipherText));
-      const tag = Buffer.from(unpack(authTag))
-      password = await decrypt(cipher, base64Key, new Uint8Array(unpack(packedIv)), tag)
+      const tag = Buffer.from(unpack(authTag));
+      const aad = Buffer.from(unpack(packedAad))
+      password = await decrypt(cipher, base64Key, new Uint8Array(unpack(packedIv)), tag,aad)
       // password = await decrypt(cipher, base64Key, new Uint8Array(unpack(packedIv)))
       console.log("PASS", password)
     } catch (e) {
       console.log(`Problem in decrypting password: ${user.password}`);
+      console.error(e)
     }
 
     // if we are not able to decrypt, we'll try to authenticate with the original creds
