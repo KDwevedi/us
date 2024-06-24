@@ -16,7 +16,7 @@ export class AddTimestampInterceptor implements NestInterceptor {
     const now = new Date();
     const {cipher, iv, authTag} = await encrypt(now.toISOString(), aesKey);
 
-    const encryptedTimeStamp = `${pack(iv)}:${pack(cipher)}:${pack(authTag)}`
+    const encryptedTimeStamp = `${pack(cipher)}:${pack(iv)}:${pack(authTag)}`
     return next.handle().pipe(
       map(data => {
         const response: Response = context.switchToHttp().getResponse();
