@@ -24,8 +24,11 @@ export class AddTimestampInterceptor implements NestInterceptor {
         // if (data && data.responseCode === 'OK') {
           response.setHeader('X-Timestamp', encryptedTimeStamp);
         // }
-        return data;
-      })
+        return {
+            ...data,
+            encryptedTimeStamp,
+      };
+  })
     );
   }
 }
