@@ -21,13 +21,14 @@ export class AddTimestampInterceptor implements NestInterceptor {
       map(data => {
         const response: Response = context.switchToHttp().getResponse();
         // Checking if the response from the API is a success
-        // if (data && data.responseCode === 'OK') {
+        if (data && data.responseCode === 'OK') {
           response.setHeader('X-Timestamp', encryptedTimeStamp);
-        // }
-        return {
+          return {
             ...data,
             encryptedTimeStamp,
       };
+        }
+        return data
   })
     );
   }
