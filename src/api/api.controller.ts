@@ -153,8 +153,7 @@ export class ApiController {
     user.password = password ? password : user.password;
 
     console.log("USER",user) 
-    // return await this.apiService.login(user, authHeader);
-    return user
+    return await this.apiService.login(user, authHeader);
   }
 
   @Post('login')
