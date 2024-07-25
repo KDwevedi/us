@@ -70,8 +70,8 @@ export const decrypt = async (cipher, base64Key, iv, authTag, aad) => {
 
 // Example usage
 // (async () => {
-//   const base64Key = 'XXXX';
-//   const message = 'test_samagra';
+//   const base64Key = 'zO4qyU72lPYuq6/KfSsQ/wSCUvfBH7Av2PZ1+bjvo9Q=';
+//   const message = 'xxxx';
 
 //   try {
 //     const { cipher, iv, authTag, aad } = await encrypt(message, base64Key);
@@ -79,6 +79,8 @@ export const decrypt = async (cipher, base64Key, iv, authTag, aad) => {
 //     console.log('IV:', pack(iv));
 //     console.log('AuthTag:', pack(authTag));
 //     console.log('AAD:', pack(aad));
+
+//     console.log(`${pack(cipher)}:${pack(iv)}:${pack(authTag)}:${pack(aad)}`)
 
 //     const decryptedMessage = await decrypt(cipher, base64Key, iv, authTag, aad);
 //     console.log('Decrypted:', decryptedMessage);
