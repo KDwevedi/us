@@ -224,13 +224,18 @@ export class FusionauthService {
   ): Promise<ClientResponse<LoginResponse>> {
     let apiKey = this.configResolverService.getApiKey(user.applicationId);
     if (authHeader != null) {
+      this.logger.debug("AUTH HEADER IS NOT NULL", authHeader)
       apiKey = authHeader;
     }
+
     const host = this.configResolverService.getHost(user.applicationId);
+    this.logger.log("FA HOST", host)
     const fusionauthClient = this.getClient(apiKey, host);
+
     return fusionauthClient
       .login(user)
       .then((response: ClientResponse<LoginResponse>): any => {
+        this.logger.log("FA RESPONSE", response)
         return response;
       })
       .catch((e) => {
