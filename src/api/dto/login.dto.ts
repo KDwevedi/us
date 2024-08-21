@@ -10,7 +10,7 @@ export class LoginDto {
 
   @IsString()
   @IsNotEmpty()
-  @MaxLength(100)
+  // @MaxLength(100)
   password: string;
 
   @IsUUID()
