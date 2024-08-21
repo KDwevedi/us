@@ -50,7 +50,9 @@ export class ConfigResolverService {
     getGCMEncryptionKey(applicationId: string): string{
         // if (this.getEncryptionStatus(applicationId)) {
             applicationId = this.transform(applicationId);
+            console.debug("TRANSFORMED APP ID", applicationId)
             const config = this.configService.get<string>(applicationId);
+            console.debug("OBTAINED CONFIG FROM ENV", config)
             return JSON.parse(config).encryption.gcmKey || undefined;
         // }
         return undefined;

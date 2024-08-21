@@ -107,10 +107,14 @@ export class ApiController {
   ): Promise<any> {
     // ONLY for Samiksha Audit App
 
+    console.debug("Req APP ID", user.applicationId)
+
     // console.log("Auth", authHeader)
     const base64Key = this.configResolverService.getGCMEncryptionKey(
       user.applicationId,
     );
+
+    console.debug("KEY", base64Key)
 
     console.log("USER",user)
     console.log("KEY", base64Key)
