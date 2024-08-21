@@ -32,6 +32,7 @@ import { LoginDto } from './dto/login.dto';
 import { SendOtpDto } from './dto/send-otp.dto';
 import { VerifyOtpDto } from './dto/verify-otp.dto';
 import { Throttle, SkipThrottle} from '@nestjs/throttler';
+import { Logger } from '@nestjs/common';
 import { encode } from 'punycode';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const CryptoJS = require('crypto-js');
@@ -43,6 +44,7 @@ CryptoJS.lib.WordArray.words;
 @Controller('api')
 @UseInterceptors(SentryInterceptor)
 export class ApiController {
+  protected readonly logger = new Logger(ApiController.name);
   constructor(
     private readonly fusionAuthService: FusionauthService,
     private readonly otpService: OtpService,
@@ -107,14 +109,14 @@ export class ApiController {
   ): Promise<any> {
     // ONLY for Samiksha Audit App
 
-    console.debug("Req APP ID", user.applicationId)
+    this.logger.log("Req APP ID", user.applicationId)
 
     // console.log("Auth", authHeader)
     const base64Key = this.configResolverService.getGCMEncryptionKey(
       user.applicationId,
     );
 
-    console.debug("KEY", base64Key)
+    this.logger.log("KEY", base64Key)
 
     console.log("USER",user)
     console.log("KEY", base64Key)

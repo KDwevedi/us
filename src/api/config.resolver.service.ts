@@ -1,9 +1,10 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { ApiConfig } from "./api.interface";
 
 @Injectable()
 export class ConfigResolverService {
+    protected readonly logger = new Logger(ConfigResolverService.name);
     constructor(private configService: ConfigService) {
     }
 
@@ -50,9 +51,9 @@ export class ConfigResolverService {
     getGCMEncryptionKey(applicationId: string): string{
         // if (this.getEncryptionStatus(applicationId)) {
             applicationId = this.transform(applicationId);
-            console.debug("TRANSFORMED APP ID", applicationId)
+            this.logger.log("TRANSFORMED APP ID", applicationId)
             const config = this.configService.get<string>(applicationId);
-            console.debug("OBTAINED CONFIG FROM ENV", config)
+            this.logger.log("OBTAINED CONFIG FROM ENV", config)
             return JSON.parse(config).encryption.gcmKey || undefined;
         // }
         return undefined;
