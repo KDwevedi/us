@@ -37,7 +37,6 @@ export class QueryGeneratorService {
                 {
                   bool: {
                     must: [
-                      [
                         {
                           nested: {
                             path: "registrations",
@@ -48,7 +47,6 @@ export class QueryGeneratorService {
                             }
                           }
                         }
-                      ]
                     ]
                   }
                 },

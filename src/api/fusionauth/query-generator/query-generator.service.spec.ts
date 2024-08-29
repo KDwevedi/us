@@ -55,7 +55,7 @@ describe('QueryGeneratorService', () => {
           {
             bool: {
               must: [
-                [
+                
                   {
                     nested: {
                       path: "registrations",
@@ -66,7 +66,7 @@ describe('QueryGeneratorService', () => {
                       }
                     }
                   }
-                ]
+                
               ]
             }
           },
